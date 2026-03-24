@@ -13,12 +13,15 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [modalError, setModalError] = useState("");
   const [modalLoading, setModalLoading] = useState(false);
+  const [role, setRole] = useState(null);
   
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const storedRole = localStorage.getItem("role");
     setIsAuthed(!!token);
+    if (storedRole) setRole(storedRole);
     setLoading(false);
     if (token) {
       fetchData();
@@ -139,7 +142,18 @@ export default function Home() {
 
   return (
     <div className="px-10 py-12 max-w-6xl mx-auto min-h-[calc(100vh-80px)] bg-gray-50 relative">
-      <h1 className="text-3xl font-bold text-center mb-10 text-black">Interview Booking</h1>
+      <div className="flex items-center justify-center gap-3 mb-10">
+        <h1 className="text-3xl font-bold text-black">Online Job Fair</h1>
+        {isAuthed && role && (
+          <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${
+            role.toLowerCase() === 'admin' 
+              ? 'bg-red-100 text-red-600' 
+              : 'bg-blue-100 text-blue-600'
+          }`}>
+            {role}
+          </span>
+        )}
+      </div>
       
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <table className="w-full text-left border-collapse border border-gray-100">

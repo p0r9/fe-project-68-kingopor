@@ -11,6 +11,7 @@ export default function Login() {
       const data = await loginUser(form);
       if (data && data.token) {
         localStorage.setItem("token", data.token);
+        if (data.role) localStorage.setItem("role", data.role);
         navigate("/");
       } else {
         alert("Login failed");
