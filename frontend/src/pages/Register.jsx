@@ -4,19 +4,41 @@ import { useNavigate } from "react-router-dom";
 
 export default function Register() {
   const [form, setForm] = useState({ name: "", telephone: "", email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const validateForm = () => {
+    if (!form.name.trim()) return "Name is required";
+    if (!form.telephone.trim()) return "Telephone is required";
+    if (!form.email.trim()) return "Email is required";
+    if (!form.password || form.password.length < 6) return "Password must be at least 6 characters";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return "Email is invalid";
+    return "";
+  };
+
   const handleSubmit = async () => {
+    setError("");
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setLoading(true);
     try {
-      const data = await registerUser(form);
-      if (data && data.success) {
-        alert("Registered successfully");
-        navigate("/login");
+      const data = await registerUser({ ...form, role: 'user' });
+      if (data && data.success && data.token) {
+        localStorage.setItem("token", data.token);
+        navigate("/");
       } else {
-        alert("Registration failed");
+        setError(data?.message || "Registration failed");
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,12 +84,19 @@ export default function Register() {
           />
         </div>
 
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+
         <div>
           <button 
-            onClick={handleSubmit} 
-            className="bg-[#52C41A] text-white font-semibold rounded-xl px-12 py-3.5 hover:bg-green-600 transition shadow-sm"
+            onClick={handleSubmit}
+            disabled={loading}
+            className="w-full bg-[#52C41A] text-white font-semibold rounded-xl px-12 py-3.5 hover:bg-green-600 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Submit
+            {loading ? "Registering..." : "Submit"}
           </button>
         </div>
       </div>

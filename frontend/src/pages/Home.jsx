@@ -9,29 +9,41 @@ export default function Home() {
   const [selectedId, setSelectedId] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState({ date: "", company: "" });
+  const [isAuthed, setIsAuthed] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [modalError, setModalError] = useState("");
+  const [modalLoading, setModalLoading] = useState(false);
   
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchData();
-    fetchCompanies();
+    const token = localStorage.getItem("token");
+    setIsAuthed(!!token);
+    setLoading(false);
+    if (token) {
+      fetchData();
+      fetchCompanies();
+    } else {
+      fetchCompanies();
+    }
   }, []);
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if(!token) {
-         setData([]);
-         return;
-      }
+      setLoading(true);
       const res = await getInterviews();
       if (res && res.data) {
-        setData(res.data);
+        setData(Array.isArray(res.data) ? res.data : []);
       } else if (res && Array.isArray(res)) {
         setData(res);
+      } else {
+        setData([]);
       }
     } catch (err) {
       console.error("Failed to fetch interviews", err);
+      setData([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,6 +64,7 @@ export default function Home() {
   const handleOpenAdd = () => {
     setModalMode("add");
     setForm({ date: "", company: companies.length > 0 ? companies[0]._id : "" });
+    setModalError("");
     setShowModal(true);
   };
 
@@ -64,6 +77,7 @@ export default function Home() {
     }
     const dateFormatted = i.date ? new Date(i.date).toISOString().split('T')[0] : "";
     setForm({ date: dateFormatted, company: companyId || "" });
+    setModalError("");
     setShowModal(true);
   };
 
@@ -75,29 +89,32 @@ export default function Home() {
           fetchData();
         }
       } catch (err) {
-        console.log("Error deleting interview", err);
+        console.error("Error deleting interview", err);
+        alert(err.message || "Failed to delete booking");
       }
     }
   };
 
   const handleSubmit = async () => {
+    setModalError("");
     if (!form.company) {
-      alert("Please select a company from the dropdown.");
+      setModalError("Please select a company from the dropdown.");
       return;
     }
     if (!form.date) {
-      alert("Please select a date.");
+      setModalError("Please select a date.");
       return;
     }
 
     const selectedDate = new Date(form.date);
     const minDate = new Date('2022-05-10T00:00:00');
-    const maxDate = new Date('2022-05-14T00:00:00'); // up to 13th end
+    const maxDate = new Date('2022-05-14T00:00:00');
     if (selectedDate < minDate || selectedDate >= maxDate) {
-      alert("Date must be between May 10th and May 13th, 2022.");
+      setModalError("Date must be between May 10th and May 13th, 2022.");
       return;
     }
     
+    setModalLoading(true);
     try {
       let res;
       if (modalMode === "add") {
@@ -110,10 +127,13 @@ export default function Home() {
         setShowModal(false);
         fetchData();
       } else {
-        alert("Error saving booking");
+        setModalError(res?.message || "Error saving booking");
       }
     } catch (err) {
-      console.log("Error", err);
+      console.error("Error", err);
+      setModalError(err.message || "Error saving booking");
+    } finally {
+      setModalLoading(false);
     }
   };
 
@@ -132,7 +152,16 @@ export default function Home() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {data.map((i) => (
+            {!isAuthed ? (
+              <tr>
+                <td colSpan="4" className="py-8 text-center text-gray-500 italic">Please log in to view your bookings</td>
+              </tr>
+            ) : data.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="py-8 text-center text-gray-500 italic">No bookings found</td>
+              </tr>
+            ) : (
+              data.map((i) => (
               <tr key={i._id} className="hover:bg-gray-50 transition border-b border-gray-100">
                 <td className="py-4 px-6 text-gray-800 border-r border-gray-100 whitespace-nowrap">
                   {i.date ? new Date(i.date).toLocaleDateString() : 'N/A'}
@@ -160,23 +189,21 @@ export default function Home() {
                   </div>
                 </td>
               </tr>
-            ))}
-            {data.length === 0 && (
-              <tr>
-                <td colSpan="4" className="py-8 text-center text-gray-500 italic">No bookings found</td>
-              </tr>
+            ))
             )}
           </tbody>
         </table>
       </div>
 
       <div className="flex justify-end mt-8">
-        <button 
-          onClick={handleOpenAdd} 
-          className="bg-[#5FBBD8] text-white font-medium px-8 py-3 rounded-md shadow-md hover:bg-cyan-500 hover:-translate-y-0.5 transition transform cursor-pointer"
-        >
-          Booking
-        </button>
+        {isAuthed && (
+          <button 
+            onClick={handleOpenAdd} 
+            className="bg-[#5FBBD8] text-white font-medium px-8 py-3 rounded-md shadow-md hover:bg-cyan-500 hover:-translate-y-0.5 transition transform cursor-pointer"
+          >
+            Booking
+          </button>
+        )}
       </div>
 
       {showModal && (
@@ -212,18 +239,26 @@ export default function Home() {
               </select>
             </div>
 
+            {modalError && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                {modalError}
+              </div>
+            )}
+
             <div className="flex justify-end gap-4">
               <button 
                 onClick={() => setShowModal(false)}
-                className="px-6 py-2.5 rounded-lg text-gray-600 font-medium hover:bg-gray-100 transition"
+                disabled={modalLoading}
+                className="px-6 py-2.5 rounded-lg text-gray-600 font-medium hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button 
                 onClick={handleSubmit}
-                className="px-6 py-2.5 rounded-lg bg-[#52C41A] text-white font-medium hover:bg-green-600 shadow-sm transition"
+                disabled={modalLoading}
+                className="px-6 py-2.5 rounded-lg bg-[#52C41A] text-white font-medium hover:bg-green-600 shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {modalMode === 'add' ? 'Submit' : 'Save'}
+                {modalLoading ? (modalMode === 'add' ? 'Submitting...' : 'Saving...') : (modalMode === 'add' ? 'Submit' : 'Save')}
               </button>
             </div>
           </div>

@@ -13,18 +13,18 @@ exports.register = async (req, res, next) => {
       email,
       password,
       telephone,
-      role
+      role: role || 'user'
     });
-    // const token = user.getSignedJwtToken();
-    sendTokenResponse (user, 200, res);
-    // res.status(200).json({ success: true ,token});
+    sendTokenResponse(user, 200, res);
 
   } catch (err) {
-    res.status(400).json({ success: false });
+    const errorMessage = err.message || 'Registration failed';
     console.log(err.stack);
+    res.status(400).json({ 
+      success: false, 
+      message: errorMessage 
+    });
   }
-  
-
 };
 // @desc     Login user
 // @route    POST /api/v1/auth/login

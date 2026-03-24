@@ -10,9 +10,20 @@ const companies = require('./routes/companies');
 const interviews = require('./routes/interviews');
 const auth = require('./routes/auth');
 dotenv.config({ path: './config/config.env' });
-
+const cors = require("cors");
 connectDB();
 const app = express();
+
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://fe-project-68-kingopor.vercel.app"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.use (express.json());
 app.use (cookieParser());
 // Body parser (สำคัญสำหรับ POST / PUT)

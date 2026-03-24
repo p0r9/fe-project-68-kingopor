@@ -1,4 +1,4 @@
-const API_URL = process.env.REACT_APP_BACKEND_URL || "/api/v1";
+const API_URL = "http://jobfairweb-kingopor.us-east-1.elasticbeanstalk.com/api/v1";
 
 export const registerUser = async (data) => {
   const res = await fetch(`${API_URL}/auth/register`, {
