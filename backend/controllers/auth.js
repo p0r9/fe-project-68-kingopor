@@ -30,7 +30,12 @@ exports.register = async (req, res, next) => {
 // @route    POST /api/v1/auth/login
 // @access   Public
 exports.login = async (req, res, next) => {
+  console.log("BODY:", req.body);
+
   const { email, password } = req.body;
+
+  console.log("EMAIL:", email);
+  console.log("PASSWORD:", password);
 
   // Validate email & password
   if (!email || !password) {
