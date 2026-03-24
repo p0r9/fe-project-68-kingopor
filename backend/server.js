@@ -9,7 +9,7 @@ const connectDB = require('./config/db');
 const companies = require('./routes/companies');
 const interviews = require('./routes/interviews');
 const auth = require('./routes/auth');
-dotenv.config({ path: './config/config.env' });
+dotenv.config();
 const cors = require("cors");
 connectDB();
 const app = express();
