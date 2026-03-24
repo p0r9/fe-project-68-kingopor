@@ -143,7 +143,7 @@ export default function Home() {
   return (
     <div className="px-10 py-12 max-w-6xl mx-auto min-h-[calc(100vh-80px)] bg-gray-50 relative">
       <div className="flex items-center justify-center gap-3 mb-10">
-        <h1 className="text-3xl font-bold text-black">Online Job Fair</h1>
+        <h1 className="text-3xl font-bold text-black">Interview Booking</h1>
         {isAuthed && role && (
           <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${
             role.toLowerCase() === 'admin' 
