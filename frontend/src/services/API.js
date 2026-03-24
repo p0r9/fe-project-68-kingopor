@@ -1,4 +1,4 @@
-const API_URL = "http://jobfairweb-kingopor.us-east-1.elasticbeanstalk.com/api/v1";
+const API_URL = "https://fe-project-68-kingopor.onrender.com/api";
 
 export const registerUser = async (data) => {
   const res = await fetch(`${API_URL}/auth/register`, {
