@@ -1,4 +1,4 @@
-const API_URL = "https://fe-project-68-kingopor.onrender.com/api";
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export const registerUser = async (data) => {
   const res = await fetch(`${API_URL}/auth/register`, {
